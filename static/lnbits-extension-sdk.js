@@ -34,6 +34,28 @@
         })
       },
 
+      replaceRoute(path) {
+        return bridgeRequest({
+          action: 'navigation.replace',
+          path
+        })
+      },
+
+      getSessionValue(key) {
+        return bridgeRequest({
+          action: 'storage.session.get',
+          key
+        })
+      },
+
+      setSessionValue(key, value) {
+        return bridgeRequest({
+          action: 'storage.session.set',
+          key,
+          value
+        })
+      },
+
       requestBackgroundPaymentPermission(grant) {
         return bridgeRequest({
           action: 'permissions.request_background_payment',

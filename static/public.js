@@ -1,4 +1,5 @@
 const client = window.createLNbitsExtensionClient({extensionId: 'pingpong'})
+const START_COUNTDOWN_SECONDS = 5
 
 const state = {
   tableId: '',
@@ -78,6 +79,7 @@ async function init() {
     return
   }
   if (state.gameId) {
+    await restorePlayerToken()
     await loadGame()
     return
   }
@@ -110,6 +112,7 @@ async function createGame() {
     state.gameId = response.gameId
     state.playerToken = response.playerToken
     state.playerSlot = response.playerSlot
+    await rememberPlayerToken()
     showInvoice(response.invoice, 'Pay to create your game. Share the link after payment.')
   } catch (error) {
     showError(error)
@@ -138,6 +141,7 @@ async function joinGame() {
     const response = await client.joinGame(state.gameId, {lnurl})
     state.playerToken = response.playerToken
     state.playerSlot = response.playerSlot
+    await rememberPlayerToken()
     showInvoice(response.invoice, 'Pay to join this game.')
   } catch (error) {
     showError(error)
@@ -175,6 +179,8 @@ function showInvoice(invoice, message) {
 async function paymentSettled() {
   state.paymentUnsubscribe?.()
   state.paymentUnsubscribe = null
+  await rememberPlayerToken()
+  replaceTableRouteWithGameRoute()
   await loadGame()
   client.notify('Payment received.', 'positive').catch(() => {})
 }
@@ -276,7 +282,8 @@ function setupEngine(game) {
     wins1: Number(game.player1Wins || 0),
     wins2: Number(game.player2Wins || 0),
     matchOver: game.status === 'paid',
-    winnerSlot: game.winnerSlot || ''
+    winnerSlot: game.winnerSlot || '',
+    countdownEndAt: countdownEndAt(game)
   }
   state.animation = window.requestAnimationFrame(tick)
 }
@@ -288,10 +295,14 @@ function tick(timestamp) {
   if (state.playerSlot === 'player1') engine.player1Y = state.localPaddle
   if (state.playerSlot === 'player2') engine.player2Y = state.localPaddle
 
+  const countdownActive = countdownRemaining(engine) > 0
+
   if (state.authority && !engine.matchOver) {
     engine.player2Y = state.remotePaddle
-    stepAuthority(engine, 1 / 60)
-    if (timestamp - state.lastStateSend > 33) {
+    if (!countdownActive) {
+      stepAuthority(engine, 1 / 60)
+    }
+    if (!countdownActive && timestamp - state.lastStateSend > 33) {
       state.lastStateSend = timestamp
       sendState(engine)
     }
@@ -460,12 +471,43 @@ function draw(engine) {
   ctx.beginPath()
   ctx.arc(engine.ballX * width, engine.ballY * height, 9, 0, Math.PI * 2)
   ctx.fill()
+  drawCountdown(ctx, width, height, countdownRemaining(engine))
   updateScoreboardFromEngine(engine)
 }
 
 function drawPaddle(ctx, x, y) {
   ctx.fillStyle = '#f4c542'
   ctx.fillRect(x, y - 48, 12, 96)
+}
+
+function drawCountdown(ctx, width, height, remaining) {
+  if (!remaining) return
+
+  ctx.save()
+  ctx.fillStyle = 'rgba(4, 17, 29, 0.62)'
+  ctx.fillRect(0, 0, width, height)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = 'rgba(248,250,252,0.95)'
+  ctx.font = `700 ${Math.round(Math.min(width, height) * 0.07)}px Inter, Roboto, Arial, sans-serif`
+  ctx.fillText('GET READY', width / 2, height * 0.32)
+  ctx.fillStyle = '#f4c542'
+  ctx.strokeStyle = 'rgba(248,250,252,0.9)'
+  ctx.lineWidth = Math.max(4, Math.round(width * 0.008))
+  ctx.font = `900 ${Math.round(Math.min(width, height) * 0.28)}px Inter, Roboto, Arial, sans-serif`
+  ctx.strokeText(String(remaining), width / 2, height * 0.55)
+  ctx.fillText(String(remaining), width / 2, height * 0.55)
+  ctx.restore()
+}
+
+function countdownEndAt(game) {
+  if (game.status !== 'playing' || !game.startedAt) return 0
+  return Number(game.startedAt) * 1000 + START_COUNTDOWN_SECONDS * 1000
+}
+
+function countdownRemaining(engine) {
+  if (!engine.countdownEndAt) return 0
+  return Math.max(0, Math.ceil((engine.countdownEndAt - Date.now()) / 1000))
 }
 
 function updateScoreboard(game) {
@@ -507,9 +549,45 @@ function hideAll() {
   nodes.gameView.hidden = true
 }
 
+function replaceTableRouteWithGameRoute() {
+  if (!state.tableId || !state.gameId) return
+  client.replaceRoute(gamePath()).catch(showError)
+}
+
+async function rememberPlayerToken() {
+  if (!state.gameId || !state.playerToken) return
+  try {
+    await client.setSessionValue(playerTokenStorageKey(), state.playerToken)
+    return
+  } catch (_error) {}
+  try {
+    window.sessionStorage.setItem(playerTokenStorageKey(), state.playerToken)
+  } catch (_error) {}
+}
+
+async function restorePlayerToken() {
+  if (!state.gameId || state.playerToken) return
+  try {
+    const data = await client.getSessionValue(playerTokenStorageKey())
+    state.playerToken = data?.value || ''
+    if (state.playerToken) return
+  } catch (_error) {}
+  try {
+    state.playerToken =
+      window.sessionStorage.getItem(playerTokenStorageKey()) || ''
+  } catch (_error) {}
+}
+
+function playerTokenStorageKey() {
+  return `lnbits.pingpong.playerToken.${state.gameId}`
+}
+
+function gamePath() {
+  return `/ext/pingpong/g/${encodeURIComponent(state.gameId)}`
+}
+
 function gameUrl() {
-  return new URL(`/ext/pingpong/g/${encodeURIComponent(state.gameId)}`, window.location.href)
-    .href
+  return new URL(gamePath(), window.location.href).href
 }
 
 async function copyText(text) {
