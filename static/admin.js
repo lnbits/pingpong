@@ -164,8 +164,12 @@ const app = Vue.createApp({
         .href
     },
 
-    openPublic(tableId) {
-      window.open(this.publicUrl(tableId), '_blank', 'noopener')
+    async openPublic(tableId) {
+      try {
+        await client.openNewTab(this.publicUrl(tableId))
+      } catch (error) {
+        this.showError(error)
+      }
     },
 
     async copyPublic(tableId) {
@@ -269,7 +273,7 @@ const app = Vue.createApp({
         h('div', {class: 'row items-center q-gutter-sm'}, [
           h('img', {
             class: 'app-icon',
-            src: '/ext-assets/pingpong/assets/icon.svg',
+            src: '/ext-assets/pingpong/assets/icon.png',
             alt: ''
           }),
           h('div', [

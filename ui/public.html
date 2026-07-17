@@ -14,7 +14,7 @@
   <body data-theme="bitcoin" class="body--dark">
     <main id="pingpong-public-app" class="shell q-pa-md">
       <header class="row items-center q-gutter-sm q-mb-lg">
-        <img class="app-icon" src="/ext-assets/pingpong/assets/icon.svg" alt="" />
+        <img class="app-icon" src="/ext-assets/pingpong/assets/icon.png" alt="" />
         <div>
           <h1 class="text-h5 text-weight-bold q-my-none">Ping Pong</h1>
           <p class="text-caption text-grey-5 q-my-none">
@@ -33,7 +33,12 @@
         <label class="text-caption text-grey-5" for="create-lnurl">
           Lightning Address or LNURL for possible payout/refund
         </label>
-        <input id="create-lnurl" class="copy-field q-mt-xs q-mb-md" />
+        <input
+          id="create-lnurl"
+          class="copy-field q-mt-xs q-mb-xs"
+          aria-describedby="create-lnurl-error"
+        />
+        <div id="create-lnurl-error" class="field-error q-mb-md" hidden></div>
         <button id="create-game" class="q-btn bg-primary text-white" type="button">
           Create Game
         </button>

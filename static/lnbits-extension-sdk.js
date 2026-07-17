@@ -27,6 +27,13 @@
         })
       },
 
+      openNewTab(url) {
+        return bridgeRequest({
+          action: 'navigation.open_new_tab',
+          url
+        })
+      },
+
       requestBackgroundPaymentPermission(grant) {
         return bridgeRequest({
           action: 'permissions.request_background_payment',

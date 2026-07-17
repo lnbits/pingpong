@@ -107,7 +107,7 @@ body {
   min-height: 22px;
 }
 
-.qr-box svg {
+.qr-box canvas {
   max-width: 260px;
   width: 100%;
   height: auto;
@@ -128,6 +128,12 @@ body {
   border-radius: 6px;
   background: var(--panel-2);
   color: #fff;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 @media (max-width: 840px) {

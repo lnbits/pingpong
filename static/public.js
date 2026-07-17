@@ -31,6 +31,7 @@ const nodes = {
   tableDescription: document.querySelector('#table-description'),
   tableMeta: document.querySelector('#table-meta'),
   createLnurl: document.querySelector('#create-lnurl'),
+  createLnurlError: document.querySelector('#create-lnurl-error'),
   createGame: document.querySelector('#create-game'),
   joinPanel: document.querySelector('#join-panel'),
   joinLnurl: document.querySelector('#join-lnurl'),
@@ -51,6 +52,7 @@ const nodes = {
 }
 
 nodes.createGame.addEventListener('click', createGame)
+nodes.createLnurl.addEventListener('input', clearCreateLnurlError)
 nodes.joinGame.addEventListener('click', joinGame)
 nodes.copyInvoice.addEventListener('click', () =>
   copyText(state.invoice?.paymentRequest || '')
@@ -97,7 +99,11 @@ function showTable(table) {
 
 async function createGame() {
   const lnurl = nodes.createLnurl.value.trim()
-  if (!lnurl) return showError(new Error('Enter a Lightning Address or LNURL.'))
+  if (!lnurl) {
+    showCreateLnurlError('Enter a Lightning Address or LNURL.')
+    return
+  }
+  clearCreateLnurlError()
   nodes.createGame.disabled = true
   try {
     const response = await client.createGame(state.tableId, {lnurl})
@@ -110,6 +116,18 @@ async function createGame() {
   } finally {
     nodes.createGame.disabled = false
   }
+}
+
+function showCreateLnurlError(message) {
+  nodes.createLnurlError.textContent = message
+  nodes.createLnurlError.hidden = false
+  nodes.createLnurl.setAttribute('aria-invalid', 'true')
+}
+
+function clearCreateLnurlError() {
+  nodes.createLnurlError.textContent = ''
+  nodes.createLnurlError.hidden = true
+  nodes.createLnurl.removeAttribute('aria-invalid')
 }
 
 async function joinGame() {
@@ -475,7 +493,7 @@ function renderQr(invoice) {
         size: 260,
         margin: 3,
         level: 'Q',
-        renderAs: 'svg'
+        renderAs: 'canvas'
       })
   })
   state.qrApp.mount(nodes.invoiceLink)
