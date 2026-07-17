@@ -1,0 +1,159 @@
+{
+  "id": "pingpong",
+  "name": "Ping Pong",
+  "short_description": "Lightning entry-fee Pong tables with winner payouts.",
+  "version": "0.1.0",
+  "min_lnbits_version": "1.5.6",
+  "extension_type": "wasm",
+  "wasm": {
+    "module": "wasm/module.wasm",
+    "exports": [
+      {"name": "create-table", "visibility": "authenticated"},
+      {"name": "list-tables", "visibility": "authenticated"},
+      {"name": "update-table", "visibility": "authenticated"},
+      {"name": "delete-table", "visibility": "authenticated"},
+      {"name": "list-wallets", "visibility": "authenticated"},
+      {"name": "get-public-table", "visibility": "public"},
+      {"name": "create-game", "visibility": "public"},
+      {"name": "get-public-game", "visibility": "public"},
+      {"name": "join-game", "visibility": "public"},
+      {"name": "finish-game", "visibility": "public"},
+      {"name": "record-payment", "visibility": "event"}
+    ]
+  },
+  "events": {"onInvoicePaid": "record-payment"},
+  "ui_routes": [
+    {"path": "/pingpong", "entrypoint": "ui/admin.html", "auth": "user"},
+    {
+      "path": "/pingpong/t/{table_id}",
+      "entrypoint": "ui/public.html",
+      "auth": "public",
+      "path_params": {"table_id": "tableId"}
+    },
+    {
+      "path": "/pingpong/g/{game_id}",
+      "entrypoint": "ui/public.html",
+      "auth": "public",
+      "path_params": {"game_id": "gameId"}
+    }
+  ],
+  "api_routes": [
+    {"method": "POST", "path": "/tables", "export": "create-table", "auth": "user"},
+    {"method": "GET", "path": "/tables", "export": "list-tables", "auth": "user"},
+    {
+      "method": "PATCH",
+      "path": "/tables/{table_id}",
+      "export": "update-table",
+      "auth": "user",
+      "path_params": {"table_id": "tableId"}
+    },
+    {
+      "method": "DELETE",
+      "path": "/tables/{table_id}",
+      "export": "delete-table",
+      "auth": "user",
+      "path_params": {"table_id": "tableId"}
+    },
+    {"method": "GET", "path": "/wallets", "export": "list-wallets", "auth": "user"},
+    {
+      "method": "GET",
+      "path": "/tables/{table_id}/public",
+      "export": "get-public-table",
+      "auth": "public",
+      "path_params": {"table_id": "tableId"}
+    },
+    {
+      "method": "POST",
+      "path": "/tables/{table_id}/games",
+      "export": "create-game",
+      "auth": "public",
+      "path_params": {"table_id": "tableId"},
+      "ownerContext": {"table": "tables", "idParam": "tableId"}
+    },
+    {
+      "method": "GET",
+      "path": "/games/{game_id}/public",
+      "export": "get-public-game",
+      "auth": "public",
+      "path_params": {"game_id": "gameId"}
+    },
+    {
+      "method": "POST",
+      "path": "/games/{game_id}/join",
+      "export": "join-game",
+      "auth": "public",
+      "path_params": {"game_id": "gameId"}
+    },
+    {
+      "method": "POST",
+      "path": "/games/{game_id}/finish",
+      "export": "finish-game",
+      "auth": "public",
+      "path_params": {"game_id": "gameId"},
+      "ownerContext": {"table": "games", "idParam": "gameId"}
+    }
+  ],
+  "permissions": [
+    {"id": "ext.storage.read", "description": "Read Ping Pong tables and games."},
+    {"id": "ext.storage.write", "description": "Create and update Ping Pong tables and games."},
+    {
+      "id": "ext.storage.read_public",
+      "description": "Read public table and game fields.",
+      "policies": [
+        {
+          "table_name": "tables",
+          "public_fields": [
+            "id",
+            "name",
+            "description",
+            "entry_sats",
+            "games_to_win",
+            "host_percent",
+            "status",
+            "created_at",
+            "updated_at"
+          ]
+        },
+        {
+          "table_name": "games",
+          "source_id_field": "table_id",
+          "public_fields": [
+            "id",
+            "table_id",
+            "status",
+            "player1_token",
+            "player2_token",
+            "player1_paid",
+            "player2_paid",
+            "player1_wins",
+            "player2_wins",
+            "current_player1_score",
+            "current_player2_score",
+            "winner_slot",
+            "payout_status",
+            "created_at",
+            "updated_at",
+            "started_at",
+            "finished_at"
+          ]
+        }
+      ]
+    },
+    {"id": "wallet.list", "description": "Choose the escrow wallet for a table."},
+    {
+      "id": "wallet.create_invoice_public",
+      "description": "Create entry-fee invoices for public games.",
+      "policies": [{"table": "tables", "wallet_field": "wallet_id"}]
+    },
+    {
+      "id": "wallet.pay_invoice_background",
+      "description": "Pay winners and race-condition refunds from the table wallet."
+    },
+    {
+      "id": "websocket.publish",
+      "description": "Publish game payment and settlement updates.",
+      "policies": [{"max_messages_per_second": 60}]
+    },
+    {"id": "websocket.subscribe", "description": "Relay live Pong input and state messages."}
+  ]
+}

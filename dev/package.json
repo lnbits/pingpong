@@ -1,0 +1,9 @@
+{
+  "name": "lnbits-pingpong-wasm",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/bundle.mjs && npx --yes @bytecodealliance/jco componentize dist/index.bundle.js --disable all --enable clocks --enable random --enable stdio --wit ../wasm/lnbits-extension.wit --world-name pingpong -o ../wasm/module.wasm",
+    "check": "\"$npm_node_execpath\" --check src/index.js && \"$npm_node_execpath\" --check src/lnbits-sdk.js && \"$npm_node_execpath\" --check ../static/lnbits-extension-sdk.js && \"$npm_node_execpath\" --check ../static/admin.js && \"$npm_node_execpath\" --check ../static/public.js && \"$npm_node_execpath\" test/index.test.js"
+  }
+}

@@ -1,0 +1,141 @@
+:root {
+  color-scheme: dark;
+  --felt: #0b3d3a;
+  --felt-2: #155e56;
+  --line: #f8fafc;
+  --accent: #f4c542;
+  --danger: #ef5350;
+  --panel: #151a22;
+  --panel-2: #202733;
+  --muted: #aeb7c4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #0e1117;
+  color: #f6f7fb;
+  font-family:
+    Inter,
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+[v-cloak],
+[hidden] {
+  display: none !important;
+}
+
+.shell {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.app-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.table-row,
+.status-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 0;
+}
+
+.table-row:last-child,
+.status-row:last-child {
+  border-bottom: 0;
+}
+
+.modal-card {
+  width: min(560px, calc(100vw - 32px));
+  border-radius: 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+.game-panel {
+  padding: 16px;
+}
+
+.arena {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  display: block;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  background: var(--felt);
+  touch-action: none;
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.score {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.game-note {
+  min-height: 22px;
+}
+
+.qr-box svg {
+  max-width: 260px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: white;
+}
+
+.invoice-text {
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.copy-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  background: var(--panel-2);
+  color: #fff;
+}
+
+@media (max-width: 840px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .score {
+    font-size: 28px;
+  }
+}

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ping Pong</title>
+    <link rel="stylesheet" href="/ext-assets/pingpong/_lnbits/bundle.min.css" />
+    <link
+      rel="stylesheet"
+      href="/ext-assets/pingpong/_lnbits/material-icons.css"
+    />
+    <link rel="stylesheet" href="/ext-assets/pingpong/app.css" />
+  </head>
+  <body data-theme="bitcoin" class="body--dark">
+    <main id="pingpong-public-app" class="shell q-pa-md">
+      <header class="row items-center q-gutter-sm q-mb-lg">
+        <img class="app-icon" src="/ext-assets/pingpong/assets/icon.svg" alt="" />
+        <div>
+          <h1 class="text-h5 text-weight-bold q-my-none">Ping Pong</h1>
+          <p class="text-caption text-grey-5 q-my-none">
+            Lightning entry-fee Pong
+          </p>
+        </div>
+      </header>
+
+      <section id="loading" class="panel q-pa-md text-grey-5">Loading...</section>
+      <section id="error" class="panel q-pa-md text-negative" hidden></section>
+
+      <section id="table-view" class="panel q-pa-md" hidden>
+        <h2 id="table-name" class="text-h4 text-weight-bold q-mt-none"></h2>
+        <p id="table-description" class="muted"></p>
+        <div id="table-meta" class="q-mb-md"></div>
+        <label class="text-caption text-grey-5" for="create-lnurl">
+          Lightning Address or LNURL for possible payout/refund
+        </label>
+        <input id="create-lnurl" class="copy-field q-mt-xs q-mb-md" />
+        <button id="create-game" class="q-btn bg-primary text-white" type="button">
+          Create Game
+        </button>
+      </section>
+
+      <section id="payment-view" class="panel q-pa-md" hidden>
+        <h2 class="text-h5 text-weight-bold q-mt-none">Pay Entry</h2>
+        <p id="payment-status" class="muted"></p>
+        <a id="invoice-link" class="qr-box" aria-label="Open invoice"></a>
+        <p id="invoice-text" class="invoice-text q-mt-md"></p>
+        <div class="row q-gutter-sm q-mt-md">
+          <button id="copy-invoice" class="q-btn bg-primary text-white" type="button">
+            Copy Invoice
+          </button>
+          <button id="copy-game-link" class="q-btn bg-transparent text-primary" type="button">
+            Copy Game Link
+          </button>
+        </div>
+      </section>
+
+      <section id="game-view" class="game-layout" hidden>
+        <div class="game-panel panel">
+          <div class="scoreboard">
+            <div>
+              <div class="text-caption text-grey-5">Player 1</div>
+              <div id="score-left" class="score">0</div>
+            </div>
+            <div>
+              <div id="match-score" class="text-weight-bold">0 - 0</div>
+              <div id="game-status" class="text-caption text-grey-5"></div>
+            </div>
+            <div>
+              <div class="text-caption text-grey-5">Player 2</div>
+              <div id="score-right" class="score">0</div>
+            </div>
+          </div>
+          <canvas id="arena" class="arena" width="960" height="600"></canvas>
+          <p id="game-note" class="game-note muted q-mb-none q-mt-sm"></p>
+        </div>
+        <aside class="panel q-pa-md">
+          <h2 class="text-h6 q-mt-none">Match</h2>
+          <div id="game-meta" class="q-gutter-y-sm"></div>
+          <div id="join-panel" class="q-mt-md" hidden>
+            <label class="text-caption text-grey-5" for="join-lnurl">
+              Lightning Address or LNURL
+            </label>
+            <input id="join-lnurl" class="copy-field q-mt-xs q-mb-md" />
+            <button id="join-game" class="q-btn bg-primary text-white full-width" type="button">
+              Join Game
+            </button>
+          </div>
+          <button id="copy-link" class="q-btn bg-transparent text-primary q-mt-md" type="button">
+            Copy Link
+          </button>
+        </aside>
+      </section>
+    </main>
+    <script src="/ext-assets/pingpong/_lnbits/vue.global.prod.js"></script>
+    <script src="/ext-assets/pingpong/_lnbits/qrcode.vue.browser.js"></script>
+    <script src="/ext-assets/pingpong/lnbits-extension-sdk.js"></script>
+    <script src="/ext-assets/pingpong/public.js"></script>
+  </body>
+</html>

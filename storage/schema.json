@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "tables": {
+    "tables": {
+      "fields": [
+        {"name": "id", "type": "string"},
+        {"name": "name", "type": "string"},
+        {"name": "description", "type": "string"},
+        {"name": "wallet_id", "type": "string"},
+        {"name": "entry_sats", "type": "integer"},
+        {"name": "games_to_win", "type": "integer"},
+        {"name": "host_percent", "type": "integer"},
+        {"name": "status", "type": "string"},
+        {"name": "created_at", "type": "datetime"},
+        {"name": "updated_at", "type": "datetime"}
+      ]
+    },
+    "games": {
+      "fields": [
+        {"name": "id", "type": "string"},
+        {"name": "table_id", "type": "string"},
+        {"name": "status", "type": "string"},
+        {"name": "player1_lnurl", "type": "string"},
+        {"name": "player2_lnurl", "type": "string"},
+        {"name": "player1_token", "type": "string"},
+        {"name": "player2_token", "type": "string"},
+        {"name": "player1_paid", "type": "boolean"},
+        {"name": "player2_paid", "type": "boolean"},
+        {"name": "player1_payment_hash", "type": "string"},
+        {"name": "player2_payment_hash", "type": "string"},
+        {"name": "player1_wins", "type": "integer"},
+        {"name": "player2_wins", "type": "integer"},
+        {"name": "current_player1_score", "type": "integer"},
+        {"name": "current_player2_score", "type": "integer"},
+        {"name": "winner_slot", "type": "string"},
+        {"name": "payout_status", "type": "string"},
+        {"name": "payout_payment_hash", "type": "string"},
+        {"name": "payout_error", "type": "string"},
+        {"name": "created_at", "type": "datetime"},
+        {"name": "updated_at", "type": "datetime"},
+        {"name": "started_at", "type": "datetime"},
+        {"name": "finished_at", "type": "datetime"}
+      ]
+    }
+  },
+  "indexes": [
+    {"table": "games", "name": "games_by_table", "field": "table_id"},
+    {"table": "games", "name": "games_by_player1_payment", "field": "player1_payment_hash"},
+    {"table": "games", "name": "games_by_player2_payment", "field": "player2_payment_hash"}
+  ]
+}

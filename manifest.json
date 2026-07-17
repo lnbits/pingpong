@@ -1,0 +1,6 @@
+{
+  "name": "Ping Pong",
+  "short_description": "Lightning entry-fee Pong tables with winner payouts.",
+  "version": "0.1.0",
+  "tile": "/ext-assets/pingpong/assets/icon.svg"
+}
