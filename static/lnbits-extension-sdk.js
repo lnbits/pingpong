@@ -286,19 +286,32 @@
     })
       .then(() => {
         let active = true
+        const deactivate = () => {
+          active = false
+          bridgeEventHandlers.delete(subscriptionId)
+        }
         return {
+          get active() {
+            return active
+          },
           send(data) {
             if (!active) return Promise.resolve()
             return bridgeRequest({
               action: 'websocket.send',
               subscriptionId,
               data
+            }).catch(error => {
+              if (isWebsocketSubscriptionNotOpen(error)) return
+              if (isUnknownWebsocketSubscription(error)) {
+                deactivate()
+                return
+              }
+              throw error
             })
           },
           unsubscribe() {
             if (!active) return
-            active = false
-            bridgeEventHandlers.delete(subscriptionId)
+            deactivate()
             bridgeRequest({
               action: 'websocket.unsubscribe',
               subscriptionId
@@ -336,6 +349,14 @@
 
   function errorMessage(value) {
     return value instanceof Error ? value.message : String(value)
+  }
+
+  function isUnknownWebsocketSubscription(error) {
+    return errorMessage(error) === 'Unknown websocket subscription.'
+  }
+
+  function isWebsocketSubscriptionNotOpen(error) {
+    return errorMessage(error) === 'Websocket subscription is not open.'
   }
 
   function logFailure(message, details = {}) {

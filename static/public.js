@@ -252,6 +252,10 @@ function metaRow(name, value) {
 async function ensureRealtime() {
   if (!state.gameId || state.websocket) return
   state.websocket = await client.subscribeWebsocket(`game:${state.gameId}`, event => {
+    if (event.event === 'websocket.error') {
+      state.websocket = null
+      return
+    }
     const data = event.data || {}
     if (data.type === 'server') {
       loadGame().catch(showError)
@@ -407,7 +411,7 @@ async function submitFinish(engine) {
 }
 
 function sendInput() {
-  state.websocket?.send({
+  sendRealtime({
     type: 'input',
     slot: state.playerSlot,
     y: state.localPaddle
@@ -415,7 +419,7 @@ function sendInput() {
 }
 
 function sendState(engine) {
-  state.websocket?.send({
+  sendRealtime({
     type: 'state',
     slot: state.playerSlot,
     player1Y: engine.player1Y,
@@ -429,6 +433,29 @@ function sendState(engine) {
     matchOver: engine.matchOver,
     winnerSlot: engine.winnerSlot
   })
+}
+
+function sendRealtime(data) {
+  const websocket = state.websocket
+  if (!websocket) return
+  websocket
+    .send(data)
+    .catch(error => {
+      if (isRealtimeNotOpen(error)) return
+      if (state.websocket === websocket) state.websocket = null
+      if (window.console?.warn) {
+        window.console.warn('[pingpong extension] Realtime send failed.', error)
+      }
+    })
+    .finally(() => {
+      if (websocket.active === false && state.websocket === websocket) {
+        state.websocket = null
+      }
+    })
+}
+
+function isRealtimeNotOpen(error) {
+  return errorMessage(error) === 'Websocket subscription is not open.'
 }
 
 function applyRemoteState(data) {
@@ -598,8 +625,12 @@ async function copyText(text) {
 function showError(error) {
   hideAll()
   nodes.error.hidden = false
-  nodes.error.textContent = error instanceof Error ? error.message : String(error)
+  nodes.error.textContent = errorMessage(error)
   client.notifyError(nodes.error.textContent).catch(() => {})
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error)
 }
 
 function clamp(value, min, max) {
