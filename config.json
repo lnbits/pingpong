@@ -37,6 +37,7 @@
       "path_params": {"game_id": "gameId"}
     }
   ],
+  "openapi": "wasm/openapi.json",
   "api_routes": [
     {"method": "POST", "path": "/tables", "export": "create-table", "auth": "user"},
     {"method": "GET", "path": "/tables", "export": "list-tables", "auth": "user"},

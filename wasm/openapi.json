@@ -1,0 +1,1064 @@
+{
+  "schemas": {
+    "ApiErrorResult": {
+      "type": "object",
+      "required": ["ok", "error"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [false],
+          "description": "Whether the WASM extension handler completed successfully."
+        },
+        "error": {
+          "type": "string",
+          "description": "Human-readable error returned by the extension."
+        }
+      }
+    },
+    "HttpError": {
+      "type": "object",
+      "properties": {
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "TableStatus": {
+      "type": "string",
+      "enum": ["open", "closed"],
+      "description": "Whether a table accepts new games."
+    },
+    "GameStatus": {
+      "type": "string",
+      "enum": [
+        "waiting_payment",
+        "waiting_opponent",
+        "playing",
+        "payout_pending",
+        "paid"
+      ],
+      "description": "Current payment and play state for the game."
+    },
+    "PlayerSlot": {
+      "type": "string",
+      "enum": ["player1", "player2"],
+      "description": "Player side in the game."
+    },
+    "PublicPlayerSlot": {
+      "type": "string",
+      "enum": ["", "player1", "player2"],
+      "description": "Current viewer's player side, or empty when unknown."
+    },
+    "PayoutStatus": {
+      "type": "string",
+      "enum": ["none", "pending", "paid", "failed"],
+      "description": "Winner payout state."
+    },
+    "TableSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "description",
+        "entrySats",
+        "gamesToWin",
+        "hostPercent",
+        "hostFeeSats",
+        "winnerPayoutSats",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Ping Pong table ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Table display name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional public table description."
+        },
+        "entrySats": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "description": "Entry fee per player in satoshis."
+        },
+        "gamesToWin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Number of games a player must win."
+        },
+        "hostPercent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Percent of the pot kept by the table host."
+        },
+        "hostFeeSats": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0,
+          "description": "Host fee for one two-player game in satoshis."
+        },
+        "winnerPayoutSats": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0,
+          "description": "Winner payout for one two-player game in satoshis."
+        },
+        "status": {
+          "$ref": "#/schemas/TableStatus"
+        },
+        "createdAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Creation timestamp returned by the extension runtime."
+        },
+        "updatedAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Last update timestamp returned by the extension runtime."
+        }
+      }
+    },
+    "TableListItem": {
+      "allOf": [
+        {
+          "$ref": "#/schemas/TableSummary"
+        },
+        {
+          "type": "object",
+          "required": ["activeGames"],
+          "properties": {
+            "activeGames": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of active games for the table."
+            }
+          }
+        }
+      ]
+    },
+    "CreateTableRequest": {
+      "type": "object",
+      "required": ["name", "walletId", "entrySats", "gamesToWin", "hostPercent"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Table display name."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Optional public table description."
+        },
+        "walletId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Wallet that receives entry fees and pays winners."
+        },
+        "entrySats": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "description": "Entry fee per player in satoshis."
+        },
+        "gamesToWin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Number of games a player must win."
+        },
+        "hostPercent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Percent of the pot kept by the table host."
+        }
+      }
+    },
+    "UpdateTableRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "New table display name."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "New public table description."
+        },
+        "entrySats": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "description": "New entry fee per player in satoshis."
+        },
+        "gamesToWin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "New number of games a player must win."
+        },
+        "hostPercent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "description": "New host percentage."
+        },
+        "status": {
+          "$ref": "#/schemas/TableStatus"
+        }
+      }
+    },
+    "TableResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/TableSummary"
+        }
+      }
+    },
+    "TableListData": {
+      "type": "object",
+      "required": ["tables"],
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/schemas/TableListItem"
+          }
+        }
+      }
+    },
+    "TableListResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/TableListData"
+        }
+      }
+    },
+    "DeleteTableResult": {
+      "type": "object",
+      "required": ["id", "deleted"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Deleted table ID."
+        },
+        "deleted": {
+          "type": "boolean",
+          "enum": [true],
+          "description": "Whether the table was deleted."
+        }
+      }
+    },
+    "DeleteTableResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/DeleteTableResult"
+        }
+      }
+    },
+    "Wallet": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "LNbits wallet ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Wallet display name."
+        },
+        "currency": {
+          "type": "string",
+          "nullable": true,
+          "description": "Wallet fiat currency, if configured."
+        }
+      }
+    },
+    "WalletListData": {
+      "type": "object",
+      "required": ["wallets"],
+      "properties": {
+        "wallets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/schemas/Wallet"
+          }
+        }
+      }
+    },
+    "WalletListResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/WalletListData"
+        }
+      }
+    },
+    "Invoice": {
+      "type": "object",
+      "required": ["paymentHash", "paymentRequest", "checkingId"],
+      "properties": {
+        "paymentHash": {
+          "type": "string",
+          "description": "Payment hash for the entry invoice."
+        },
+        "paymentRequest": {
+          "type": "string",
+          "description": "Bolt11 payment request for the entry invoice."
+        },
+        "checkingId": {
+          "type": "string",
+          "description": "LNbits checking ID for the entry invoice."
+        }
+      }
+    },
+    "CreateGameRequest": {
+      "type": "object",
+      "required": ["lnurl"],
+      "properties": {
+        "lnurl": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Lightning Address or LNURL used for refunds and winner payouts."
+        }
+      }
+    },
+    "JoinGameRequest": {
+      "type": "object",
+      "required": ["lnurl"],
+      "properties": {
+        "lnurl": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Lightning Address or LNURL used for refunds and winner payouts."
+        }
+      }
+    },
+    "GameInvoiceData": {
+      "type": "object",
+      "required": ["gameId", "playerSlot", "playerToken", "invoice"],
+      "properties": {
+        "gameId": {
+          "type": "string",
+          "description": "Game ID."
+        },
+        "playerSlot": {
+          "$ref": "#/schemas/PlayerSlot"
+        },
+        "playerToken": {
+          "type": "string",
+          "description": "Secret token identifying the player in this game."
+        },
+        "invoice": {
+          "$ref": "#/schemas/Invoice"
+        }
+      }
+    },
+    "GameInvoiceResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/GameInvoiceData"
+        }
+      }
+    },
+    "FinishGameRequest": {
+      "type": "object",
+      "required": ["playerToken", "winnerSlot"],
+      "properties": {
+        "playerToken": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Secret player token returned when the player joined the game."
+        },
+        "winnerSlot": {
+          "$ref": "#/schemas/PlayerSlot"
+        },
+        "player1Wins": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final number of games won by player 1."
+        },
+        "player2Wins": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final number of games won by player 2."
+        },
+        "currentPlayer1Score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final point score for player 1."
+        },
+        "currentPlayer2Score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final point score for player 2."
+        }
+      }
+    },
+    "PublicGame": {
+      "type": "object",
+      "required": [
+        "id",
+        "tableId",
+        "status",
+        "playerSlot",
+        "player1Paid",
+        "player2Paid",
+        "player1Wins",
+        "player2Wins",
+        "currentPlayer1Score",
+        "currentPlayer2Score",
+        "winnerSlot",
+        "payoutStatus",
+        "pointsToWin",
+        "table",
+        "createdAt",
+        "updatedAt",
+        "startedAt",
+        "finishedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Game ID."
+        },
+        "tableId": {
+          "type": "string",
+          "description": "Table ID that owns the game."
+        },
+        "status": {
+          "$ref": "#/schemas/GameStatus"
+        },
+        "playerSlot": {
+          "$ref": "#/schemas/PublicPlayerSlot"
+        },
+        "player1Paid": {
+          "type": "boolean",
+          "description": "Whether player 1 paid the entry invoice."
+        },
+        "player2Paid": {
+          "type": "boolean",
+          "description": "Whether player 2 paid the entry invoice."
+        },
+        "player1Wins": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Games won by player 1."
+        },
+        "player2Wins": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Games won by player 2."
+        },
+        "currentPlayer1Score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Current point score for player 1."
+        },
+        "currentPlayer2Score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Current point score for player 2."
+        },
+        "winnerSlot": {
+          "type": "string",
+          "enum": ["", "player1", "player2"],
+          "description": "Winner slot, or empty before a winner is set."
+        },
+        "payoutStatus": {
+          "$ref": "#/schemas/PayoutStatus"
+        },
+        "pointsToWin": {
+          "type": "integer",
+          "enum": [11],
+          "description": "Points required to win one game."
+        },
+        "table": {
+          "$ref": "#/schemas/TableSummary"
+        },
+        "createdAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Creation timestamp returned by the extension runtime."
+        },
+        "updatedAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Last update timestamp returned by the extension runtime."
+        },
+        "startedAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Game start timestamp, or 0 before the game starts."
+        },
+        "finishedAt": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Game finish timestamp, or 0 before the game finishes."
+        }
+      }
+    },
+    "PublicGameResponse": {
+      "type": "object",
+      "required": ["ok", "data"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "enum": [true]
+        },
+        "data": {
+          "$ref": "#/schemas/PublicGame"
+        }
+      }
+    }
+  },
+  "commonResponses": {
+    "400": {
+      "description": "Invalid request.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/schemas/HttpError"
+          }
+        }
+      }
+    },
+    "403": {
+      "description": "The request is not allowed for the current user or route owner.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/schemas/HttpError"
+          }
+        }
+      }
+    },
+    "404": {
+      "description": "Route, export, or owner-context source was not found.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/schemas/HttpError"
+          }
+        }
+      }
+    },
+    "413": {
+      "description": "Request body exceeds the WASM extension size limit.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/schemas/HttpError"
+          }
+        }
+      }
+    }
+  },
+  "routes": {
+    "create-table": {
+      "summary": "Create table",
+      "description": "Creates a Ping Pong table owned by the authenticated user.",
+      "operationId": "pingpong_create_table",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/schemas/CreateTableRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Created table or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/TableResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        },
+        "413": {
+          "$ref": "#/commonResponses/413"
+        }
+      }
+    },
+    "list-tables": {
+      "summary": "List tables",
+      "description": "Returns Ping Pong tables owned by the authenticated user.",
+      "operationId": "pingpong_list_tables",
+      "responses": {
+        "200": {
+          "description": "Table list or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/TableListResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        }
+      }
+    },
+    "update-table": {
+      "summary": "Update table",
+      "description": "Updates table settings for a table owned by the authenticated user.",
+      "operationId": "pingpong_update_table",
+      "parameters": [
+        {
+          "name": "table_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Table ID."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/schemas/UpdateTableRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Updated table or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/TableResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        },
+        "413": {
+          "$ref": "#/commonResponses/413"
+        }
+      }
+    },
+    "delete-table": {
+      "summary": "Delete table",
+      "description": "Deletes a table owned by the authenticated user if it has no games.",
+      "operationId": "pingpong_delete_table",
+      "parameters": [
+        {
+          "name": "table_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Table ID."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Deletion result or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/DeleteTableResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        }
+      }
+    },
+    "list-wallets": {
+      "summary": "List wallets",
+      "description": "Returns wallets available to the authenticated user.",
+      "operationId": "pingpong_list_wallets",
+      "responses": {
+        "200": {
+          "description": "Wallet list or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/WalletListResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        }
+      }
+    },
+    "get-public-table": {
+      "summary": "Get public table",
+      "description": "Returns public details for one Ping Pong table.",
+      "operationId": "pingpong_get_public_table",
+      "parameters": [
+        {
+          "name": "table_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Table ID."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Public table details or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/TableResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        }
+      }
+    },
+    "create-game": {
+      "summary": "Create game",
+      "description": "Creates a game for a public table and returns the first player's entry invoice.",
+      "operationId": "pingpong_create_game",
+      "parameters": [
+        {
+          "name": "table_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Table ID."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/schemas/CreateGameRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Game invoice details or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/GameInvoiceResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        },
+        "413": {
+          "$ref": "#/commonResponses/413"
+        }
+      }
+    },
+    "get-public-game": {
+      "summary": "Get public game",
+      "description": "Returns public state for one Ping Pong game.",
+      "operationId": "pingpong_get_public_game",
+      "parameters": [
+        {
+          "name": "game_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Game ID."
+        },
+        {
+          "name": "playerToken",
+          "in": "query",
+          "schema": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "description": "Optional player token used to identify the caller's player slot."
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Public game state or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/PublicGameResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        }
+      }
+    },
+    "join-game": {
+      "summary": "Join game",
+      "description": "Joins an existing game and returns the second player's entry invoice.",
+      "operationId": "pingpong_join_game",
+      "parameters": [
+        {
+          "name": "game_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Game ID."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/schemas/JoinGameRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Game invoice details or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/GameInvoiceResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        },
+        "413": {
+          "$ref": "#/commonResponses/413"
+        }
+      }
+    },
+    "finish-game": {
+      "summary": "Finish game",
+      "description": "Finalizes a paid game, records the winner, and attempts the winner payout.",
+      "operationId": "pingpong_finish_game",
+      "parameters": [
+        {
+          "name": "game_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Game ID."
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/schemas/FinishGameRequest"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Final public game state or extension-level error.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/schemas/PublicGameResponse"
+                  },
+                  {
+                    "$ref": "#/schemas/ApiErrorResult"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/commonResponses/400"
+        },
+        "403": {
+          "$ref": "#/commonResponses/403"
+        },
+        "404": {
+          "$ref": "#/commonResponses/404"
+        },
+        "413": {
+          "$ref": "#/commonResponses/413"
+        }
+      }
+    }
+  }
+}
