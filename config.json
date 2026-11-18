@@ -17,8 +17,8 @@
       {"name": "create-game", "visibility": "public"},
       {"name": "get-public-game", "visibility": "public"},
       {"name": "join-game", "visibility": "public"},
-      {"name": "finish-game", "visibility": "public"},
-      {"name": "record-payment", "visibility": "event"}
+      {"name": "finish-game", "visibility": "public", "sync": true},
+      {"name": "record-payment", "visibility": "event", "sync": true}
     ]
   },
   "events": {"onInvoicePaid": "record-payment"},
